@@ -5,7 +5,7 @@
 html {
     font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
     --yellow: #fffd81;
-    --blue: #81e0ff;
+    --blue: #81ecff;
     --boxpadding: 20px 40px;
 }
 
@@ -69,6 +69,7 @@ section.home {
     position: sticky;
     top: 80px;
     overflow: hidden;
+    box-shadow: 50px 50px 10px white inset;
 }
 
 section.home-scroll {
