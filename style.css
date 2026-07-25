@@ -26,6 +26,7 @@ header {
     position: fixed;
     height: 60px;
     width: var(--headerwidth);
+    max-width: calc(100% - 20px);
     left: 50%;
     transform: translateX(-50%);
     top: 10px;
@@ -118,4 +119,5 @@ div.shadowheader {
     z-index: 1;
     border-radius: 999px;
     box-shadow: 0 0 8px #7f7f7f;
+    max-width: calc(100% - 20px);
 }
