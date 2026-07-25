@@ -6,7 +6,7 @@ html {
     font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
     --yellow: #fffd81;
     --blue: #81ecff;
-    --boxpadding: 20px 40px;
+    --boxpadding: 10px 40px;
 }
 
 html,
@@ -16,19 +16,24 @@ body {
 
 header {
     position: sticky;
-    height: 80px;
-    top: 0;
-    background-color: white;
+    height: 60px;
+    width: fit-content;
+    top: 10px;
     z-index: 999;
+    box-shadow: 0 0 8px #7f7f7f;
+    border-radius: 999px;
+    background-color: white;
 }
 
 nav {
-    height: 80px;
+    border-radius: 999px;
+    height: 60px;
     display: flex;
     justify-content: space-between;
     padding: var(--boxpadding);
-    max-width: 800px;
+    width: fit-content;
     margin: auto;
+    gap: 50px;
 }
 
 header h1,
@@ -50,6 +55,7 @@ header h1 a {
 
 header div a {
     color: black;
+    font-size: 15pt;
 }
 
 header div {
@@ -68,7 +74,7 @@ section.home {
     height: 500px;
     position: sticky;
     top: 80px;
-    overflow: hidden;
+    /*overflow: hidden;*/
     box-shadow: 50px 50px 10px white inset;
 }
 
@@ -97,7 +103,7 @@ div.hero-bubbles-container {
     position: absolute;
     top: calc(250px - calc(var(--size) / 2));
     left: calc(var(--shift-right) + calc(var(--radius) * -1));
-    transition: transform 0.2s;
+    /*transition: transform 0.2s;*/
     /*animation-name: hero-bubble;
     animation-timing-function: linear;
     animation-duration: 15s;
