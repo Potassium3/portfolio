@@ -4,7 +4,7 @@
 
 html {
     font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-    --yellow: #fffd81;
+    --yellow: #e9c80b;
     --blue: #81ecff;
     --boxpadding: 10px 40px;
 }
@@ -14,10 +14,17 @@ body {
     margin: 0;
 }
 
+body {
+    background-color: var(--yellow);
+}
+
 header {
     position: sticky;
     height: 60px;
     width: fit-content;
+    margin: 10px 0 10px;
+    left: 50%;
+    transform: translateX(-50%);
     top: 10px;
     z-index: 999;
     box-shadow: 0 0 8px #7f7f7f;
@@ -66,127 +73,16 @@ header div {
 
 section {
     padding: var(--boxpadding);
-    max-width: 800px;
     margin: auto;
 }
 
-section.home {
-    height: 500px;
-    position: sticky;
-    top: 80px;
-    /*overflow: hidden;*/
-    box-shadow: 50px 50px 10px white inset;
-}
-
-section.home-scroll {
-    height: 700px;
-}
-
-div.hero-info {
-    max-width: min(480px, 50vw);
-}
-
-h3 {
-    padding: 10px;
-    border-radius: 10px;
+section.blue {
     background-color: var(--blue);
-    width: fit-content;
+    border-top: 4px solid black;
+    border-bottom: 4px solid black;
 }
 
-div.hero-bubbles-container {
-    --radius: min(600px, 70vw);
-    --size: min(200px, 23vw);
-    --inner-size: min(150px, 18vw);
-    --shift-right: min(200px, 23vw);
-    width: calc(var(--radius) * 2);
-    height: var(--size);
+main {
     position: absolute;
-    top: calc(250px - calc(var(--size) / 2));
-    left: calc(var(--shift-right) + calc(var(--radius) * -1));
-    /*transition: transform 0.2s;*/
-    /*animation-name: hero-bubble;
-    animation-timing-function: linear;
-    animation-duration: 15s;
-    animation-iteration-count: infinite;*/
-}
-
-div.hero-bubble-container {
-    position: absolute;
-}
-
-div.hero-bubble-container.big {
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: var(--size);
-}
-
-div.hero-bubble-container.small {
-    top: 0;
-    left: 0;
-    width: 95%;
-    height: var(--inner-size);
-}
-
-div.hero-bubble-container.blue {
-    --colour: var(--blue);
-}
-
-div.hero-bubble-container.yellow {
-    --colour: var(--yellow);
-}
-
-a.hero-bubble {
-    position: absolute;
-    top: 0;
-    right: 0;
-    height: 100%;
-    aspect-ratio: 1;
-    border-radius: 100%;
-    background-color: var(--colour);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-decoration: none;
-    color: black;
-}
-
-a.hero-bubble:hover {
-    filter: brightness(0.9);
-}
-
-div.hero-bubble-container.b1 {
-    transform: rotate(0deg);
-}
-
-div.hero-bubble-container.b2 {
-    transform: rotate(30deg);
-}
-
-div.hero-bubble-container.b3 {
-    transform: rotate(75deg);
-}
-
-div.hero-bubble-container.b4 {
-    transform: rotate(105deg);
-}
-
-div.hero-bubble-container.b5 {
-    transform: rotate(135deg);
-}
-
-div.hero-bubble-container.b6 {
-    transform: rotate(165deg);
-}
-
-div.hero-bubble-container.b7 {
-    transform: rotate(210deg);
-}
-
-div.hero-bubble-container.b8 {
-    transform: rotate(255deg);
-}
-
-div.hero-bubble-container.b9 {
-    transform: rotate(290deg);
+    top: 80px;
 }
