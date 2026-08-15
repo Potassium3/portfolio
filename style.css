@@ -4,10 +4,15 @@
 
 html {
     font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-    --red: #cd1e24;
-    --pink: #f4d1d2;
-    --mintgreen: #b9fbc5;
-    --lightyellow: #f3fbb9;
+    min-height: 100%;
+    background-color: var(--gray);
+    --red:       #cd1e24;
+    --pink:      #f4d1d2;
+    --green:     #177d50;
+    --mintgreen: #a8e4a9;
+    --yellow:    #eae389;
+    --brown:     #895b23;
+    --gray: #e8e4dd;
     --boxpadding: 10px 40px;
     --headerwidth: 500px;
     --bodywidth: 500px;
@@ -97,12 +102,12 @@ section.normal {
     border-bottom: 3px solid black;
 }
 
-section.green {
+section.mintgreen {
     background-color: var(--mintgreen);
 }
 
-section.yellow {
-    background-color: var(--lightyellow);
+section.green {
+    background-color: var(--green);
 }
 
 section.pink {
@@ -120,4 +125,47 @@ div.shadowheader {
     border-radius: 999px;
     box-shadow: 0 0 8px #7f7f7f;
     max-width: calc(100% - 20px);
+}
+
+p {
+    font-size: 12pt;
+}
+
+a.bigbox {
+    display: block;
+    width: 200px;
+    height: 200px;
+    font-size: 15pt;
+    border-radius: 20px;
+    background-color: var(--yellow);
+    border: 3px solid black;
+    padding: 10px;
+
+    text-decoration: none;
+    color: black;
+}
+
+a.button {
+    display: block;
+    width: fit-content;
+    margin: 10px 0 10px;
+    padding: 5px;
+    background-color: var(--yellow);
+    border: 3px solid black;
+    border-radius: 5px;
+
+    text-decoration: none;
+    color: black;
+}
+
+p.bixboxdetail {
+    display: block;
+}
+
+div.horizontal {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 15px;
+    justify-content: left;
 }
