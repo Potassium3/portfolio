@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Game of Life</title>
+
+	<style>
+/* Footer styles */
+
+div.footer {
+    display: flex;
+    flex-direction: row;
+    position: sticky;
+    width: 100%;
+    bottom: 0;
+    height: 80px;
+    background-color: white;
+    box-shadow: 0 0 16px #000000;
+    z-index: 2;
+    padding: 20px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    justify-content: space-between;
+}
+div.footer h1,
+div.footer h2,
+div.footer div,
+div.footer a,
+div.footer p {
+    margin: 0;
+    color: black;
+    text-decoration: none;
+    font-weight: normal;
+}
+div.footer h1 {
+    font-size: 32px;
+}
+div.footer h1,
+div.footer p {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    text-decoration: none;
+}
+div.footer a {
+    color: #cd1e24;
+}
+div.footer div { /* Added */
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+}
+div.footer>div>:nth-child(2) { /* Added */
+    background-color: var(--theme);
+}
+
+/* Blob styles */
+
+button.blob {
+    position: absolute;
+    bottom: 100px;
+    left: 20px;
+    height: 40px;
+    width: fit-content;
+    min-width: 40px;
+    z-index: 1;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background-color: white;
+    border-radius: 999px;
+    box-shadow: 0 0 16px #000000;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 16pt;
+    cursor: pointer;
+}
+
+/* Sidebar styles */
+
+div.sidebar {
+    position: absolute;
+    top: 0;
+    right: -400px;
+    transition: right 0.5s;
+    width: 400px;
+    height: calc(100% - 80px);
+    background-color: white;
+    z-index: 3;
+    overflow-y: auto;
+
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    padding: 20px;
+}
+
+div.sidebar-table {
+    width: 100%;
+    background-color: var(--theme-2-transparent);
+    border-radius: 15px;
+    margin: 10px 0 10px;
+}
+
+div.sidebar-item {
+    position: relative;
+    width: 100%;
+    height: 30px;
+    margin: 0 0 5px;
+    border-radius: 15px;
+    cursor: pointer;
+    padding: 0 5px 0 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+div.sidebar-item.selected {
+    background-color: var(--theme-2);
+}
+
+div.sidebar-item-active {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    border-radius: 100%;
+    display: inline;
+    width: 10px;
+    height: 10px;
+    background-color: black;
+}
+
+div.sidebar-item-stable {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    border-radius: 100%;
+    display: inline;
+    width: 10px;
+    height: 10px;
+    background-color: #888888;
+}
+
+button.sidebar-button {
+    width: fit-content;
+    height: 30px;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    background-color: white;
+    box-shadow: none !important;
+}
+
+button.sidebar-button.red {
+    background-color: var(--theme-2) !important;
+}
+
+button.sidebar-button.yellow {
+    background-color: var(--theme-3) !important;
+}
+
+button.sidebar-button.blue {
+    background-color: var(--theme) !important;
+}
+
+div.sidebar-nav {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 0 0 10px;
+}
+
+div.sidebar-header {
+    margin: 0 0 10px;
+    position: sticky;
+    top: 0;
+    backdrop-filter: blur(2px);
+    padding: 10px;
+    border-radius: 15px;
+    background-color: #ffffff88;
+    box-shadow: 0 0 5px #444444;
+    z-index: 999;
+}
+
+div.sidebar-nav>* {
+    flex-grow: 1;
+    background-color: #dddddd;
+}
+div.sidebar-nav>.on {
+    flex-grow: 1;
+    background-color: var(--theme);
+}
+div.sidebar-nav>:not(:first-child) {
+    border-top-left-radius: 5px !important;
+    border-bottom-left-radius: 5px;
+}
+div.sidebar-nav>:not(:last-child) {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+/* Main styles */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    --theme: #2fa7db;
+    --theme-2: #d8178b;
+    --theme-2-transparent: #cf178544;
+    --theme-3: #e4c515;
+    --background: #11151b;
+    --background-light: #2c3035;
+}
+
+html, body {
+    margin: 0;
+    background-color: var(--background-light);
+    overflow: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, p {
+    margin: 0 0 10px;
+}
+
+h2 {
+    font-size: 24pt;
+    color: var(--theme-2) !important;
+}
+
+h3 {
+    font-size: 16pt;
+    color: var(--theme-2) !important;
+}
+
+p {
+    font-size: 12pt;
+}
+
+/* Grid styles */
+
+main {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 80px);
+    /*overflow: hidden;*/
+    background-image: url(grid.svg);
+    background-color: var(--background);
+    background-size: 20px;
+    background-position: top left;
+    background-position-x: 0px; /* Script.js */
+    background-position-y: 0px; /* Script.js */
+    z-index: 0;
+
+    touch-action: none; /* Prevent unusual touchscreen events */
+}
+
+main>div.square {
+    position: absolute;
+    background-color: var(--theme);
+    aspect-ratio: 1;
+    z-index: 1;
+}
+main>div.square.fade {
+    background-color: #dddddd !important;
+}
+main>div.square.red {
+    background-color: var(--theme-2) !important;
+}
+main>div.subgrid {
+    position: absolute;
+    z-index: 20;
+    border: 2px solid white;
+    cursor: pointer;
+    overflow: hidden;
+}
+main>div.subgridhidden {
+    position: absolute;
+    z-index: 0;
+    color: #dddddd;
+    user-select: none;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    transform: translate(0px, 10px);
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 10pt;
+    overflow: hidden;
+}
+
+main>div.subgrid.selected {
+    background-color: #ffffff44;
+}
+
+main>div.subgridhidden>p {
+    margin: 0;
+    background-color: var(--background);
+    border-radius: 2px;
+}
+
+/* Button and menu styles */
+
+button {
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    background: none;
+}
+
+button img {
+    width: 100%;
+    height: 100%;
+}
+
+div.slider {
+    width: 125px; /* Max x plus 20px */
+    height: 100%;
+    position: relative;
+}
+
+div.slider>input {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    
+    opacity: 0;
+    z-index: 999;
+    cursor: pointer;
+}
+
+div.slider>div.slider-track {
+    position: absolute;
+    top: 15px;
+    height: 10px;
+    left: 0;
+    width: 100%;
+    
+    background-color: #dddddd;
+    border-radius: 999px;
+}
+
+div.slider>div.slider-knob {
+    position: absolute;
+    top: 10px;
+    height: 20px;
+    left: 0;
+    width: 20px;
+
+    transition: left 100ms;
+    
+    background-color: var(--theme-2);
+    border-radius: 999px;
+    box-shadow: 0 0 0 5px var(--theme-2-transparent);
+}
+
+div.slider>p {
+    position: absolute;
+    top: 30px;
+    height: 10px;
+    left: 0;
+    
+    color: #888888;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-size: 8pt;
+}
+
+div.button-divider {
+    height: 100%;
+    border: 2px solid #dddddd;
+}
+
+.on {
+    box-shadow: inset 0 0 0px 2px var(--theme);
+}
+	</style>
+</head>
+<body>
+
+    <!-- grid, blob, footer, sidebar -->
+    <main>
+        <!-- javascript -->
+    </main>
+
+    <button class="blob">
+        E
+        <!-- javascript -->
+    </button>
+
+    <div class="footer">
+        <div>
+            <h1>Game of Life</h1>
+            <button id="button-next"><img src="icon-next.svg"></button>
+
+            <div>
+                <button id="button-play"><img src="icon-play.svg"></button>
+                <div class="slider">
+                    <input id="input-speed" type="range" min="0" max="40">
+                    <div class="slider-track"></div>
+                    <div id="input-speed-knob" class="slider-knob"></div>
+                    <p id="input-speed-name"></p>
+                </div>
+            </div>
+
+            <div class="button-divider"></div>
+
+            <div>
+                <button id="button-zoom"><img src="icon-zoom.svg"></button>
+                <div class="slider">
+                    <input id="input-zoom" type="range" min="0" max="7">
+                    <div class="slider-track"></div>
+                    <div id="input-zoom-knob" class="slider-knob"></div>
+                    <p id="input-zoom-name"></p>
+                </div>
+            </div>
+
+            <div class="button-divider"></div>
+
+            <button id="button-single"><img src="icon-single.svg"></button>
+            <button id="button-multiple"><img src="icon-multiple.svg"></button>
+            <button id="button-info"><img src="icon-info.svg"></button>
+            
+            <div class="button-divider"></div>
+            
+            <button id="button-clear"><img src="icon-clear.svg"></button>
+        </div>
+        <p>By&nbsp;<a href="https://miles.knightpuzzle.com">Miles</a></p>
+    </div>
+
+    <div class="sidebar sidebar-objects">
+        <h2>Objects</h2>
+        <div class="sidebar-header">
+            <button class="sidebar-button red" id="sidebar-objects-delete">Delete</button>
+            <button class="sidebar-button blue" id="sidebar-objects-left">L</button>
+            <button class="sidebar-button blue" id="sidebar-objects-up">U</button>
+            <button class="sidebar-button blue" id="sidebar-objects-down">D</button>
+            <button class="sidebar-button blue" id="sidebar-objects-right">R</button>
+        </div>
+        <p>Select an object below or on the grid to examine.</p>
+        <div class="sidebar-table">
+            <!-- javascript -->
+        </div>
+    </div>
+
+    <div class="sidebar sidebar-info">
+        <h2>Game of Life</h2>
+        <p>Welcome to my Game of Life simulator!</p>
+        <h3>How to use</h3>
+        <p>On the bottom bar there are several controls, controlling:</p>
+        <ul>
+            <li>Next generation</li>
+            <li>Play/pause and speed</li>
+            <li>Zoom</li>
+            <li>Menus</li>
+            <li>Clearing board</li>
+        </ul>
+        <h3>How it works</h3>
+        <p>The code splits the infinite grid into small rectangular portions containing alive cells. The program only processes these squares. You can see these portions on the "Objects" menu.</p>
+    </div>
+
+    <script>
+
+// Improve: Make split better (otherwise ok)
+let zoom; // Width of cells (px)
+let posX = 15; // One unit is one cell
+let posY = -13;
+
+let generation = 0;
+let play = false;
+let playIntervalID;
+let speedFrequency; // Number of generations per second
+
+let globalMode = "C"; // Cell, object or info mode (C/O/I)
+let objectMode = "L"; // List, info or add objects (L/I/A)
+let selectedObject = -1; // ID of selected object (subgrid) on grid
+
+let screenWidth = window.innerWidth;
+let screenHeight = window.innerHeight - 80;
+
+let nextId = 1;
+let state = [{"id":242,"tl":[-46,11],"wh":[4,4],"sq":[[false,false,false,false],[false,true,true,false],[false,true,true,false],[false,false,false,false]],"blank":[[false,true,true,false],[false,true,true,false]],"active":false},{"id":290,"tl":[-12,9],"wh":[4,4],"sq":[[false,false,false,false],[false,true,true,false],[false,true,true,false],[false,false,false,false]],"blank":[[false,true,true,false],[false,true,true,false]],"active":false},{"id":377,"tl":[-20,19],"wh":[5,5],"sq":[[false,false,false,false,false],[false,true,false,false,false],[false,false,true,true,false],[false,true,true,false,false],[false,false,false,false,false]],"active":true,"blank":[[false,true,true,true,false],[false,true,true,true,false]]},{"id":410,"tl":[-41,9],"wh":[7,9],"sq":[[false,false,false,false,false,false,false],[false,false,false,false,true,false,false],[false,false,false,true,false,true,false],[false,false,true,false,true,true,false],[false,true,true,false,true,true,false],[false,false,true,false,true,true,false],[false,false,false,true,false,true,false],[false,false,false,false,true,false,false],[false,false,false,false,false,false,false]],"blank":[[false,true,true,true,true,true,false],[false,true,true,true,true,true,true,true,false]],"active":true},{"id":556,"tl":[-23,7],"wh":[9,9],"sq":[[false,false,false,false,false,false,false,false,false],[false,true,false,true,false,false,false,false,false],[false,true,false,false,true,false,false,false,false],[false,false,false,false,true,true,false,false,false],[false,false,true,false,false,false,true,true,false],[false,false,false,false,true,true,false,false,false],[false,true,false,false,true,false,false,false,false],[false,true,false,true,false,false,false,false,false],[false,false,false,false,false,false,false,false,false]],"blank":[[false,true,true,true,true,true,true,true,false],[false,true,true,true,true,true,true,true,false]],"active":true},{"id":585,"tl":[-31,9],"wh":[8,9],"sq":[[false,false,false,false,false,false,false,false],[false,true,false,false,false,false,false,false],[false,true,false,false,false,false,false,false],[false,false,true,false,false,false,false,false],[false,false,false,false,false,true,true,false],[false,true,true,true,false,false,true,false],[false,false,false,true,true,true,true,false],[false,false,false,false,true,true,false,false],[false,false,false,false,false,false,false,false]],"blank":[[false,true,true,true,true,true,true,false],[false,true,true,true,true,true,true,true,false]],"active":true}];
+
+function transformations(sq, targetsq) {
+    let list = [];
+    const matrices = [
+        [1, 0, 0, 1], // No transformation
+        [0, -1, 1, 0], // 90 degrees
+        [-1, 0, 0, -1], // 180 degrees / flip x and y
+        [0, 1, -1, 0], // 270 degrees
+        [1, 0, 0, -1], // Flip y
+        [-1, 0, 0, 1], // Flip x
+        [0, 1, 1, 0], // Flip diagonal \
+        [0, -1, -1, 0], // Flip diagonal /
+    ]
+    let anytargetmeet = false;
+    for (let matrix of matrices) {
+        let targetmeet = true;
+        let newSq = Array(sq.wh[1]).fill(Array(sq.wh[0]).fill(false));
+        let middle = [sq.wh[0]/2-0.5, sq.wh[1]/2-0.5];
+        let stop = false;
+        for (let y=0; y<sq.wh[1]; y++) {
+            for (let x=0; x<sq.wh[0]; x++) {
+                let newX = (x - middle[0])*matrix[0] + (y - middle[1])*matrix[1] + middle[0];
+                let newY = (x - middle[0])*matrix[2] + (y - middle[1])*matrix[3] + middle[1];
+                if (parseInt(newX) != newX || newX >= sq.wh[0] || newX < 0) {
+                    stop = true;
+                    targetmeet = false;
+                    break;
+                } else if (parseInt(newY) != newY || newY >= sq.wh[1] || newY < 0) {
+                    stop = true;
+                    targetmeet = false;
+                    break;
+                }
+                newSq[newY][newX] = sq.sq[y][x]; // Boolean assignment
+                if (newSq[newY][newX] != targetsq[newY][newX]) {
+                    targetmeet = false;
+                }
+            }
+            if (stop) {break};
+        }
+        if (targetmeet) {
+            anytargetmeet = true;
+        }
+        list.push(newSq);
+    }
+    return anytargetmeet;
+}
+
+function recognise(subgrid) {
+    if ((subgrid.wh[0]==5 && subgrid.wh[1]==3) && transformations({
+        wh: subgrid.wh,
+        sq: [
+            [false, false, false, false, false],
+            [false, true, true, true, false],
+            [false, false, false, false, false],
+        ],
+        direction: "se",
+    }, subgrid.sq)) {
+        return ["Blinker", true]
+    } else if ((subgrid.wh[0]==3 && subgrid.wh[1]==5) && transformations({
+        wh: subgrid.wh,
+        sq: [
+            [false, false, false],
+            [false, true, false],
+            [false, true, false],
+            [false, true, false],
+            [false, false, false],
+        ],
+        direction: "se",
+    }, subgrid.sq)) {
+        return ["Blinker", true]
+    } else if (subgrid.wh[0]==3 && subgrid.wh[1]==3) {
+        return ["Single Cell", false]
+    } else if (subgrid.wh[0]==4 && subgrid.wh[1]==4 && subgrid.sq[1][1] && subgrid.sq[1][2] && subgrid.sq[2][1] && subgrid.sq[2][2]) {
+        return ["Block", true]
+    } else if (subgrid.wh[0]==5 && subgrid.wh[1]==5 && transformations({
+        wh: subgrid.wh,
+        sq: [
+            [false, false, false, false, false],
+            [false, false, true, false, false],
+            [false, false, false, true, false],
+            [false, true, true, true, false],
+            [false, false, false, false, false],
+        ],
+        direction: "se",
+    }, subgrid.sq)) {
+        return ["Glider", true]
+    } else if (subgrid.wh[0]==5 && subgrid.wh[1]==5 && transformations({
+        wh: subgrid.wh,
+        sq: [
+            [false, false, false, false, false],
+            [false, true, false, true, false],
+            [false, false, true, true, false],
+            [false, false, true, false, false],
+            [false, false, false, false, false],
+        ],
+        direction: "se",
+    }, subgrid.sq)) {
+        return ["Glider", true]
+    } else if (subgrid.wh[0]==5 && subgrid.wh[1]==5 && transformations({
+        wh: subgrid.wh,
+        sq: [
+            [false, false, false, false, false],
+            [false, false, true, true, false],
+            [false, true, false, true, false],
+            [false, false, true, false, false],
+            [false, false, false, false, false],
+        ],
+        direction: "se",
+    }, subgrid.sq)) {
+        return ["Boat", true]
+    } else if (subgrid.wh[0]==5 && subgrid.wh[1]==5 && transformations({
+        wh: subgrid.wh,
+        sq: [
+            [false, false, false, false, false],
+            [false, false, true, false, false],
+            [false, true, false, true, false],
+            [false, false, true, false, false],
+            [false, false, false, false, false],
+        ],
+        direction: "se",
+    }, subgrid.sq)) {
+        return ["Tub", true]
+    } else if (subgrid.wh[0]==5 && subgrid.wh[1]==5 && transformations({
+        wh: subgrid.wh,
+        sq: [
+            [false, false, false, false, false],
+            [false, false, true, true, false],
+            [false, true, false, true, false],
+            [false, true, true, false, false],
+            [false, false, false, false, false],
+        ],
+        direction: "se",
+    }, subgrid.sq)) {
+        return ["Ship", true]
+    } else if (subgrid.wh[0]==5 && subgrid.wh[1]==6 && transformations({
+        wh: subgrid.wh,
+        sq: [
+            [false, false, false, false, false],
+            [false, false, true, false, false],
+            [false, true, false, true, false],
+            [false, true, false, true, false],
+            [false, false, true, false, false],
+            [false, false, false, false, false],
+        ],
+        direction: "se",
+    }, subgrid.sq)) {
+        return ["Beehive", true]
+    } else if (subgrid.wh[0]==6 && subgrid.wh[1]==5 && transformations({
+        wh: subgrid.wh,
+        sq: [
+            [false, false, false, false, false, false],
+            [false, false, true, true, false, false],
+            [false, true, false, false, true, false],
+            [false, false, true, true, false, false],
+            [false, false, false, false, false, false],
+        ],
+        direction: "se",
+    }, subgrid.sq)) {
+        return ["Beehive", true]
+    } else if (subgrid.wh[0]==6 && subgrid.wh[1]==6 && transformations({
+        wh: subgrid.wh,
+        sq: [
+            [false, false, false, false, false, false],
+            [false, false, true, true, false, false],
+            [false, true, false, false, true, false],
+            [false, false, true, false, true, false],
+            [false, false, false, true, false, false],
+            [false, false, false, false, false, false],
+        ],
+        direction: "se",
+    }, subgrid.sq)) {
+        return ["Loaf", true]
+    } else if (subgrid.wh[0]==6 && subgrid.wh[1]==6 && transformations({
+        wh: subgrid.wh,
+        sq: [
+            [false, false, false, false, false, false],
+            [false, false, true, true, false, false],
+            [false, true, false, false, true, false],
+            [false, true, false, false, true, false],
+            [false, false, true, true, false, false],
+            [false, false, false, false, false, false],
+        ],
+        direction: "se",
+    }, subgrid.sq)) {
+        return ["Pond", true]
+    }
+    
+    if (subgrid.active) {
+        return ["Unknown Active", false]
+    } else {
+        return ["Unknown Stable", false]
+    }
+}
+
+function showState() {
+    let main = document.querySelector("main");
+    let blob = document.querySelector(".blob");
+    let objList = document.querySelector(".sidebar-table");
+    if (state.length == 0) {
+        // If board empty pause
+        play = false;
+        clearInterval(playIntervalID);
+        document.getElementById("button-play").className = "";
+    }
+    blob.innerText = generation;
+    main.innerHTML = "";
+    objList.innerHTML = "";
+    let i = 0;
+    for (let subgrid of state) {
+        // Add to list in sidebar
+        let sidebarItem = document.createElement("div");
+        sidebarItem.className = "sidebar-item";
+        let name = "";
+        if (zoom >= 10) {
+            name = recognise(subgrid);
+        }
+        sidebarItem.innerText = name[0];
+        if (subgrid.active) {
+            sidebarItem.innerHTML += `<div class="sidebar-item-active"></div>`;
+        } else {
+            sidebarItem.innerHTML += `<div class="sidebar-item-stable"></div>`;
+        }
+        if (subgrid.id == selectedObject) {
+            sidebarItem.className = "sidebar-item selected";
+        }
+        objList.appendChild(sidebarItem);
+        sidebarItem.addEventListener("click", function () {
+            objectSelect(subgrid.id);
+        });
+
+        // Show subgrid outline if on object mode
+        // Show subgrid name if on any other mode
+        let top = (subgrid.tl[1] + posY) * zoom + screenHeight/2;
+        let left = (subgrid.tl[0] + posX) * zoom + screenWidth/2;
+        let width = subgrid.wh[0] * zoom;
+        let height = subgrid.wh[1] * zoom;
+
+        let className = "subgrid";
+        let newName = "";
+        if (globalMode != "O") {
+            className = "subgridhidden";
+            newName = name[1] ? name[0] : "";
+        } else if (subgrid.id == selectedObject) {
+            className = "subgrid selected";
+        }
+        if (newName != "") {newName = `<p>${newName}</p>`};
+        main.innerHTML += `<div class="${className}" style="top:${top}px; left:${left}px; width:${width}px; height:${height}px; border-width:${Math.max(1,parseInt(zoom/6))}px;">${newName}</div>`;
+
+        let activeClass = subgrid.id == selectedObject ? "red" : subgrid.active ? "" : "fade"
+        
+        let relY = 0;
+        for (let row of subgrid.sq) {
+            let relX = 0;
+            for (let cell of row) {
+                if (cell) {
+                    let top = (subgrid.tl[1] + relY + posY) * zoom + screenHeight/2;
+                    let left = (subgrid.tl[0] + relX + posX) * zoom + screenWidth/2;
+                    main.innerHTML += `<div class="square ${activeClass}" style="top:${top}px; left:${left}px; width:${zoom}px;"></div>`
+                }
+                relX++;
+            }
+            relY++;
+        }
+        i++;
+    }
+    main.style.backgroundPositionX = (posX*zoom + screenWidth/2)%zoom + 0.5*zoom +"px";
+    main.style.backgroundPositionY = (posY*zoom + screenHeight/2)%zoom + 0.5*zoom +"px"; // HERE
+    main.style.backgroundSize = zoom+"px";
+
+    // If no objects on grid
+    if (i == 0) {
+        objList.innerHTML = `<div class="sidebar-item">The board is empty.</div>`;   
+    }
+}
+
+function stateReshape() {
+    let i = 0;
+    for (let subgrid of state) {
+        // Check that subgrid metadata exists
+        if (subgrid.blank) {null /* Yes */} else {continue /* Skip */};
+        i++;
+
+        // Expand grid
+        if (subgrid.blank[1][0]) {
+            let newrow = Array(subgrid.wh[0]).fill(false);
+            subgrid.sq.unshift(newrow);
+            subgrid.blank[1].unshift(false);
+            subgrid.wh[1]++;
+            subgrid.tl[1]--;
+        }
+        if (subgrid.blank[0][0]) {
+            for (let row of subgrid.sq) {
+                row.unshift(false);
+            }
+            subgrid.blank[0].unshift(false);
+            subgrid.wh[0]++;
+            subgrid.tl[0]--;
+        }
+        if (subgrid.blank[1][subgrid.wh[1]-1]) {
+            let newrow = Array(subgrid.wh[0]).fill(false);
+            subgrid.sq.push(newrow);
+            subgrid.blank[1].push(false);
+            subgrid.wh[1]++;
+        }
+        if (subgrid.blank[0][subgrid.wh[0]-1]) {
+            for (let row of subgrid.sq) {
+                row.push(false);
+            }
+            subgrid.blank[0].push(false);
+            subgrid.wh[0]++;
+        }
+
+        // Crop grid
+        while (!subgrid.blank[1][1] && subgrid.wh[1] > 2) {
+            // While second row blank
+            // Delete top row
+            subgrid.sq.shift();
+            subgrid.blank[1].shift();
+            subgrid.wh[1]--;
+            subgrid.tl[1]++;
+        }
+        while (!subgrid.blank[0][1] && subgrid.wh[0] > 2) {
+            // While second column blank
+            // Delete leftmost column
+            for (let row of subgrid.sq) {
+                row.shift();
+            }
+            subgrid.blank[0].shift();
+            subgrid.wh[0]--;
+            subgrid.tl[0]++;
+        }
+        while (!subgrid.blank[1][subgrid.wh[1]-2] && subgrid.wh[1] > 2) {
+            // While penultimate row blank
+            // Delete bottom row
+            subgrid.sq.pop();
+            subgrid.blank[1].pop();
+            subgrid.wh[1]--;
+        }
+        while (!subgrid.blank[0][subgrid.wh[0]-2] && subgrid.wh[0] > 2) {
+            // Deleting rightmost column
+            for (let row of subgrid.sq) {
+                row.pop();
+            }
+            subgrid.blank[0].pop();
+            subgrid.wh[0]--;
+        }
+    }
+}
+
+function stateMerge() {
+    // Merges subgrids to make everything easier to compute
+    // Must continue doing this unless subgrids overlap
+    // This is one of the most complex parts of this program
+
+    let merging = true; // Flag for another check needed
+    while (merging) {
+        // Check for overlapping subgrids
+        merging = false;
+        let positions = [];
+        let i=0;
+        for (let subgrid of state) {
+            let j=0;
+            for (let position of positions) {
+                // Check y overlap AND x overlap
+                if (
+                    (subgrid.tl[1] < position[0][1]+position[1][1] &&
+                        subgrid.tl[1]+subgrid.wh[1] > position[0][1]) &&
+                    (subgrid.tl[0] < position[0][0]+position[1][0] &&
+                        subgrid.tl[0]+subgrid.wh[0] > position[0][0])
+                ) {
+                    // Execute merging
+                    merging = true;
+                    console.log("MERGE");
+
+                    // i = Index of first subgrid
+                    let subgrid1 = subgrid; // First subgrid
+
+                    // j = Index of second subgrid, less than index of first
+                    let subgrid2 = state[j]; // Second subgrid
+                    
+                    // Define dimensions of new subgrid
+                    let newSubgrid = {
+                        id: nextId,
+                        tl: [
+                            // The topmost and leftmost point
+                            Math.min(subgrid1.tl[0], subgrid2.tl[0]), 
+                            Math.min(subgrid1.tl[1], subgrid2.tl[1])
+                        ],
+                        wh: [
+                            // Maximum bottom right point minus the above to get dimensions
+                            Math.max(subgrid1.tl[0]+subgrid1.wh[0], subgrid2.tl[0]+subgrid2.wh[0])
+                            - Math.min(subgrid1.tl[0], subgrid2.tl[0]),
+                            Math.max(subgrid1.tl[1]+subgrid1.wh[1], subgrid2.tl[1]+subgrid2.wh[1])
+                            - Math.min(subgrid1.tl[1], subgrid2.tl[1]),
+                        ],
+                        sq: [],
+                        blank: [],
+                        active: true,
+                    }
+                    nextId++;
+                    newSubgrid.blank = [
+                        Array(newSubgrid.wh[0]).fill(false),
+                        Array(newSubgrid.wh[1]).fill(false)
+                    ]
+                    
+                    // Fill new subgrid with the correct squares
+                    newSubgrid.sq = Array(newSubgrid.wh[1]);
+                    for (let y=0; y<newSubgrid.wh[1]; y++) {
+                        newSubgrid.sq[y] = Array(newSubgrid.wh[0]);
+                        for (let x=0; x<newSubgrid.wh[0]; x++) {
+                            // Find the current position relative to both initial subgrids 
+                            let xAbsolute = x+newSubgrid.tl[0];
+                            let yAbsolute = y+newSubgrid.tl[1];
+                            let xRelativeTo1 = xAbsolute - subgrid1.tl[0];
+                            let yRelativeTo1 = yAbsolute - subgrid1.tl[1];
+                            let xRelativeTo2 = xAbsolute - subgrid2.tl[0];
+                            let yRelativeTo2 = yAbsolute - subgrid2.tl[1];
+
+                            // If alive squares in that position in either of the subgrids
+                            newSubgrid.sq[y][x] = // Boolean assignment
+                            (
+                                yRelativeTo1 >= 1 && // Check position is ON the smaller subgrids
+                                yRelativeTo1 < subgrid1.wh[1] - 1 &&
+                                xRelativeTo1 >= 1 &&
+                                xRelativeTo1 < subgrid1.wh[0] - 1 &&
+                                subgrid1.sq[yRelativeTo1][xRelativeTo1]
+                            ) || (
+                                yRelativeTo2 >= 1 && // Check position is ON the smaller subgrids
+                                yRelativeTo2 < subgrid2.wh[1] - 1 &&
+                                xRelativeTo2 >= 1 &&
+                                xRelativeTo2 < subgrid2.wh[0] - 1 &&
+                                subgrid2.sq[yRelativeTo2][xRelativeTo2]
+                            )
+
+                            // If cell has become alive
+                            if (newSubgrid.sq[y][x]) {
+                                // Store in blank metadata
+                                newSubgrid.blank[0][x] = true;
+                                newSubgrid.blank[1][y] = true;
+                            }
+                        }
+                    }
+
+                    // Delete initial subgrids and add the new one to "state"
+                    state.splice(i, 1);
+                    state.splice(j, 1);
+                    state.push(newSubgrid);
+                }
+                j++;
+                if (merging) {break};
+            }
+
+            // Add current subgrid to list of subgrid positions
+            positions.push([subgrid.tl, subgrid.wh])
+            i++;
+            if (merging) {break}
+        }
+    }
+}
+
+function stateDeleteTrivial() {
+    let i=0;
+    let deletions = []
+    for (let subgrid of state) {
+        if (subgrid.wh[0] <= 2 || subgrid.wh[1] <= 2) {
+            deletions.push(i);
+        }
+        i++;
+    }
+    for (let i=deletions.length-1;i>=0;i--) {
+        // Loop from the back of the list to avoid offsetting other subgrids
+        state.splice(deletions[i], 1);
+    }
+}
+
+function stateSplit() {
+    let splitting = true; // Flag for another split needed
+    while (splitting) {
+        splitting = false;
+
+        let i = 0;
+        // Vertical split line
+        for (let subgrid of state) {
+            // If no blank rows/cols metadata, don't bother
+            if (subgrid.blank) {null /* Yes */} else {continue /* Skip */};
+            
+            let countGap = 0;
+            let columnNum = 0;
+            for (let column of subgrid.blank[0]) {
+                // Count number of blank columns in a row
+                if (!column) { // If blank
+                    countGap++;
+                } else {
+                    countGap = 0;
+                }
+
+                // If 2 or more then split
+                if (countGap >= 2) {
+                    // Execute splitting
+                    splitting = true;
+                    console.log("SPLIT");
+
+                    // Gap position calculations
+                    let splitIndex = columnNum - countGap + 1;
+
+                    // Create new subgrids
+                    let leftSubgrid = {
+                        id: nextId,
+                        tl: subgrid.tl,
+                        wh: [
+                            splitIndex+1, // Width + 1 (margin of blank cells)
+                            subgrid.wh[1] // Height
+                        ],
+                        sq: [],
+                        active: true,
+                    };
+                    nextId++;
+                    let rightSubgrid = {
+                        id: nextId,
+                        tl: [
+                            subgrid.tl[0] + splitIndex + countGap - 1, // X position
+                            subgrid.tl[1] // Y position
+                        ],
+                        wh: [
+                            subgrid.wh[0] - splitIndex - countGap + 1, // Width
+                            subgrid.wh[1] // Height
+                        ],
+                        sq: [],
+                        active: true,
+                    };
+                    nextId++;
+                    leftSubgrid.blank = [
+                        Array(leftSubgrid.wh[0]).fill(false),
+                        Array(leftSubgrid.wh[1]).fill(false)
+                    ]
+                    rightSubgrid.blank = [
+                        Array(rightSubgrid.wh[0]).fill(false),
+                        Array(rightSubgrid.wh[1]).fill(false)
+                    ]
+
+                    // Copy over cell states to subgrids
+                    leftSubgrid.sq = Array(leftSubgrid.wh[1]);
+                    for (let y=0; y<leftSubgrid.wh[1]; y++) {
+                        leftSubgrid.sq[y] = Array(leftSubgrid.wh[0]);
+                        for (let x=0; x<leftSubgrid.wh[0]; x++) {
+                            // Find the current position relative to initial subgrid 
+                            let xAbsolute = x+leftSubgrid.tl[0];
+                            let yAbsolute = y+leftSubgrid.tl[1];
+                            let xRelativeToInitial = xAbsolute - subgrid.tl[0];
+                            let yRelativeToInitial = yAbsolute - subgrid.tl[1];
+
+                            // Copy over cell states to new subgrids
+                            leftSubgrid.sq[y][x] = subgrid.sq[yRelativeToInitial][xRelativeToInitial];
+
+                            // If cell is now alive
+                            if (leftSubgrid.sq[y][x]) {
+                                // Store in blank metadata
+                                leftSubgrid.blank[0][x] = true;
+                                leftSubgrid.blank[1][y] = true;
+                            }
+                        }
+                    }
+                    rightSubgrid.sq = Array(rightSubgrid.wh[1]);
+                    for (let y=0; y<rightSubgrid.wh[1]; y++) {
+                        rightSubgrid.sq[y] = Array(rightSubgrid.wh[0]);
+                        for (let x=0; x<rightSubgrid.wh[0]; x++) {
+                            // Find the current position relative to initial subgrid 
+                            let xAbsolute = x+rightSubgrid.tl[0];
+                            let yAbsolute = y+rightSubgrid.tl[1];
+                            let xRelativeToInitial = xAbsolute - subgrid.tl[0];
+                            let yRelativeToInitial = yAbsolute - subgrid.tl[1];
+
+                            // Copy over cell states to new subgrids
+                            rightSubgrid.sq[y][x] = subgrid.sq[yRelativeToInitial][xRelativeToInitial];
+
+                            // If cell is now alive
+                            if (rightSubgrid.sq[y][x]) {
+                                // Store in blank metadata
+                                rightSubgrid.blank[0][x] = true;
+                                rightSubgrid.blank[1][y] = true;
+                            }
+                        }
+                    }
+
+                    // Put new subgrids into state
+                    
+                    state.splice(i, 1); // Delete initial
+                    state.push(leftSubgrid); // Add new
+                    state.push(rightSubgrid); // Add new
+                }
+                if (splitting) {break}; // Skip column loops after splitting
+                columnNum++;
+            }
+            if (splitting) {break}; // Skip subgrid loops after splitting
+
+            i++;
+        }
+
+        // Horizontal split line
+        i = 0;
+        for (let subgrid of state) {
+            // If no blank rows/cols metadata, don't bother
+            if (subgrid.blank) {null /* Yes */} else {continue /* Skip */};
+            
+            let countGap = 0;
+            let rowNum = 0;
+            for (let row of subgrid.blank[1]) {
+                // Count number of blank rows in a column
+                if (!row) { // If blank
+                    countGap++;
+                } else {
+                    countGap = 0;
+                }
+
+                // If 2 or more then split
+                if (countGap >= 2) {
+                    // Execute splitting
+                    splitting = true;
+                    console.log("SPLIT");
+
+                    // Gap position calculations
+                    let splitIndex = rowNum - countGap + 1;
+
+                    // Create new subgrids
+                    let topSubgrid = {
+                        id: nextId,
+                        tl: subgrid.tl,
+                        wh: [
+                            subgrid.wh[0], // Width
+                            splitIndex+1, // Height + 1 (margin of blank cells)
+                        ],
+                        sq: [],
+                        blank: [],
+                        active: true,
+                    };
+                    nextId++;
+                    let bottomSubgrid = {
+                        id: nextId,
+                        tl: [
+                            subgrid.tl[0], // X position
+                            subgrid.tl[1] + splitIndex + countGap - 1 // Y position
+                        ],
+                        wh: [
+                            subgrid.wh[0], // Width
+                            subgrid.wh[1] - splitIndex - countGap + 1 // Height
+                        ],
+                        sq: [],
+                        blank: [],
+                        active: true,
+                    };
+                    nextId++;
+                    topSubgrid.blank = [
+                        Array(topSubgrid.wh[0]).fill(false),
+                        Array(topSubgrid.wh[1]).fill(false)
+                    ]
+                    bottomSubgrid.blank = [
+                        Array(bottomSubgrid.wh[0]).fill(false),
+                        Array(bottomSubgrid.wh[1]).fill(false)
+                    ]
+
+                    // Copy over cell states to both new subgrids
+                    topSubgrid.sq = Array(topSubgrid.wh[1]);
+                    for (let y=0; y<topSubgrid.wh[1]; y++) {
+                        topSubgrid.sq[y] = Array(topSubgrid.wh[0]);
+                        for (let x=0; x<topSubgrid.wh[0]; x++) {
+                            // Find the current position relative to initial subgrid 
+                            let xAbsolute = x+topSubgrid.tl[0];
+                            let yAbsolute = y+topSubgrid.tl[1];
+                            let xRelativeToInitial = xAbsolute - subgrid.tl[0];
+                            let yRelativeToInitial = yAbsolute - subgrid.tl[1];
+
+                            // Copy over cell states to new subgrids
+                            topSubgrid.sq[y][x] = subgrid.sq[yRelativeToInitial][xRelativeToInitial];
+
+                            // If cell is now alive
+                            if (topSubgrid.sq[y][x]) {
+                                // Store in blank metadata
+                                topSubgrid.blank[0][x] = true;
+                                topSubgrid.blank[1][y] = true;
+                            }
+                        }
+                    }
+                    bottomSubgrid.sq = Array(bottomSubgrid.wh[1]);
+                    for (let y=0; y<bottomSubgrid.wh[1]; y++) {
+                        bottomSubgrid.sq[y] = Array(bottomSubgrid.wh[0]);
+                        for (let x=0; x<bottomSubgrid.wh[0]; x++) {
+                            // Find the current position relative to initial subgrid 
+                            let xAbsolute = x+bottomSubgrid.tl[0];
+                            let yAbsolute = y+bottomSubgrid.tl[1];
+                            let xRelativeToInitial = xAbsolute - subgrid.tl[0];
+                            let yRelativeToInitial = yAbsolute - subgrid.tl[1];
+
+                            // Copy over cell states to new subgrids
+                            bottomSubgrid.sq[y][x] = subgrid.sq[yRelativeToInitial][xRelativeToInitial];
+
+                            // If cell is now alive
+                            if (bottomSubgrid.sq[y][x]) {
+                                // Store in blank metadata
+                                bottomSubgrid.blank[0][x] = true;
+                                bottomSubgrid.blank[1][y] = true;
+                            }
+                        }
+                    }
+
+                    // Put new subgrids into state
+                    
+                    state.splice(i, 1); // Delete initial
+                    state.push(topSubgrid); // Add new
+                    state.push(bottomSubgrid); // Add new
+                }
+                if (splitting) {break}; // Skip column loops after splitting
+                rowNum++;
+            }
+            if (splitting) {break}; // Skip subgrid loops after splitting
+
+            i++;
+        }
+        // Check for splits again until no are required
+    }
+}
+
+// HIGHER LEVEL FUNCTIONS BELOW
+// (button and click functions; Life rules)
+
+function stateNext() {
+    // Increment generation count
+    generation++;
+
+    const NEIGHBOURS = [ // Vectors
+        [0, 1],
+        [1, 1],
+        [1, 0],
+        [1, -1],
+        [0, -1],
+        [-1, -1],
+        [-1, 0],
+        [-1, 1],
+    ]
+
+    // Next state for all subgrids
+    for (let subgrid of state) {
+        // If stable thing, leave alone
+        if (!subgrid.active) {continue};
+
+        // Subgrid metadata for empty rows/columns
+        subgrid.blank = [
+            Array(subgrid.wh[0]).fill(false),
+            Array(subgrid.wh[1]).fill(false)
+        ]
+
+        // Create new generation grid
+        let newgrid = structuredClone(subgrid);
+
+        // Flag for active or stable state
+        let active = false;
+
+        // Individual cell changes
+        for (let y=0; y<subgrid.wh[1]; y++) {
+            for (let x=0; x<subgrid.wh[0]; x++) {
+                // Each cell:
+
+                // Count neighbours
+                let count = 0;
+                for (let neighbour of NEIGHBOURS) {
+                    let neighbourX = neighbour[0]+x;
+                    let neighbourY = neighbour[1]+y;
+                    
+                    // Check neighbour is on the subgrid
+                    if (neighbourX >= 0 && 
+                    neighbourX < subgrid.wh[0] &&
+                    neighbourY >= 0 &&
+                    neighbourY < subgrid.wh[1]) {
+                        // Check neighbour is alive
+                        if (subgrid.sq[neighbourY][neighbourX]) {
+                            count++;
+                        }
+                    }
+                }
+
+                // Apply Game of Life rules
+                if (count <= 1) {
+                    // Cell with 0 or 1 neighbours dies
+                    newgrid.sq[y][x] = false;
+                } else if (count == 2) {
+                    // Cell with 2 neighbours stays the same
+                    
+                    if (newgrid.sq[y][x]) {
+                        // If alive, cell means row/column not blank:
+                        newgrid.blank[0][x] = true;
+                        newgrid.blank[1][y] = true;
+                    }
+                } else if (count == 3) {
+                    // Cell with 3 neighbours is born
+                    newgrid.sq[y][x] = true;
+
+                    // Alive cell means row/column not blank:
+                    newgrid.blank[0][x] = true;
+                    newgrid.blank[1][y] = true;
+                } else {
+                    // Cell with 4+ neighbours dies
+                    newgrid.sq[y][x] = false;
+                }
+                if (newgrid.sq[y][x] != subgrid.sq[y][x]) {
+                    active = true;
+                }
+            }
+        }
+
+        // Apply individual cell changes to new generation grid
+        subgrid.sq = newgrid.sq;
+        subgrid.blank = newgrid.blank;
+        subgrid.active = active;
+        
+        // Used to have reshape code inside loop
+        // Sadly, not any more
+    }
+
+    // Tidy up
+    stateReshape();
+    stateDeleteTrivial();
+    stateMerge();
+    stateSplit();
+    stateReshape();
+    stateDeleteTrivial();
+
+    // Update
+    showState();
+}
+
+function stateSquareClick(x, y) {
+    // Separate code to execute in object mode when selecting object
+    if (globalMode == "O") {
+        let onSubgrid = false;
+        for (let subgrid of state) {
+            // Check if click lands on subgrid
+            if (x >= subgrid.tl[0] && y >= subgrid.tl[1] && x < subgrid.tl[0]+subgrid.wh[0] && y < subgrid.tl[1]+subgrid.wh[1]) {
+                // Select the object in the sidebar
+                objectSelect(subgrid.id);
+                onSubgrid = true;
+            }
+        }
+        if (!onSubgrid) {
+            objectSelect(-1);
+        }
+        return;
+    }
+
+    let onSubgrid = false;
+    // If on a subgrid already
+    for (let subgrid of state) {
+        if (x >= subgrid.tl[0]+1 && y >= subgrid.tl[1]+1 && x < subgrid.tl[0]+subgrid.wh[0]-1 && y < subgrid.tl[1]+subgrid.wh[1]-1) {
+            subgrid.active = true;
+            
+            let relativeX = x - subgrid.tl[0];
+            let relativeY = y - subgrid.tl[1];
+            
+            // Toggle square
+            subgrid.sq[relativeY][relativeX] = !subgrid.sq[relativeY][relativeX];
+
+            // See if blank metadata needs changing
+            // If square was toggled off
+            if (!subgrid.sq[relativeY][relativeX]) {
+                // Check the row for all dead cells
+                let alive = false;
+                for (let checkX=0; checkX<subgrid.wh[0]; checkX++) {
+                    if (subgrid.sq[relativeY][checkX]) {
+                        alive = true;
+                        break
+                    }
+                }
+                if (!alive) {
+                    subgrid.blank[1][relativeY] = false;
+                }
+
+                // Check the column for all dead cells
+                alive = false;
+                for (let checkY=0; checkY<subgrid.wh[1]; checkY++) {
+                    if (subgrid.sq[checkY][relativeX]) {
+                        alive = true;
+                        break
+                    }
+                }
+                if (!alive) {
+                    subgrid.blank[0][relativeX] = false;
+                }
+            }
+
+            // Stop function, don't execute the 'not on subgrid' code
+            onSubgrid = true;
+            break;
+        }
+    }
+
+    // If not on subgrid, create new and merge if needed
+    if (!onSubgrid) {
+        state.push({
+            id: nextId,
+            wh: [3, 3],
+            tl: [x-1, y-1],
+            sq: [
+                [false, false, false],
+                [false, true, false],
+                [false, false, false],
+            ],
+            blank: [
+                [false, true, false],
+                [false, true, false]
+            ],
+            active: true,
+        });
+        nextId++;
+    }
+
+    // Tidy up
+    stateReshape();
+    stateDeleteTrivial();
+    stateMerge();
+    stateSplit();
+    stateReshape();
+    stateDeleteTrivial();
+
+    // Update
+    showState();
+}
+
+function stateClear() {
+    state = [];
+
+    // Update
+    showState();
+}
+
+function objectSelect(id) {
+    console.log("SELECT "+id);
+    selectedObject = id;
+    showState();
+}
+
+function updateMode(mode) {
+    let sidebarObjects = document.querySelector(".sidebar-objects");
+    let sidebarInfo = document.querySelector(".sidebar-info");
+    let buttonSingle = document.getElementById("button-single");
+    let buttonMultiple = document.getElementById("button-multiple");
+    let buttonMenu = document.getElementById("button-info");
+    globalMode = mode;
+    if (mode == "C") {
+        // Cell-level editing
+        sidebarObjects.style.right = "-400px";
+        sidebarInfo.style.right = "-400px";
+        buttonSingle.className = "on";
+        buttonMultiple.className = "off";
+        buttonMenu.className = "off";
+        screenWidth = window.innerWidth;
+    } else if (mode == "O") {
+        // Object-level editing
+        sidebarObjects.style.right = "0px";
+        sidebarInfo.style.right = "-400px";
+        buttonSingle.className = "off";
+        buttonMultiple.className = "on";
+        buttonMenu.className = "off";
+        //screenWidth = window.innerWidth - 400;
+    } else if (mode == "I") {
+        sidebarObjects.style.right = "-400px";
+        sidebarInfo.style.right = "0px";
+        buttonSingle.className = "off";
+        buttonMultiple.className = "off";
+        buttonMenu.className = "on";
+        //screenWidth = window.innerWidth - 400;
+    }
+    showState();
+}
+
+function updateZoom() {
+    let input = document.getElementById("input-zoom");
+
+    // Update slider knob position
+    let knob = document.getElementById("input-zoom-knob");
+    knob.style.left = (15*input.value)+"px";
+
+    const zooms = [4, 6, 9, 10, 12, 16, 20, 30];
+    const zoomnames = ["Pixel View", "Large Scale Map", "Big Picture", "Expansion", "Normal Enough", "Clear Focus", "Interaction Detail", "Nitty Gritty"];
+
+    // Update zoom name
+    let name = document.getElementById("input-zoom-name");
+    name.innerHTML = zoomnames[input.value] + " &middot; " + zooms[input.value] + " px";
+
+    // Update actual zoom
+    zoom = zooms[input.value];
+    showState();
+}
+
+function updateSpeed() {
+    let input = document.getElementById("input-speed");
+
+    // Update slider knob position
+    let knob = document.getElementById("input-speed-knob");
+    knob.style.left = (105/40*input.value)+"px";
+
+    // Update actual speed
+    speedFrequency = parseInt((
+
+        input.value < 25
+        ? (0.5 + (0.1*input.value))
+        : (3.0 + (0.5*(input.value - 25)))
+
+    )* 10 ) / 10; // Round to 1dp.
+
+    // Update speed label
+    let name = document.getElementById("input-speed-name");
+    name.innerHTML = speedFrequency >= 1
+        ? speedFrequency + " Hz"
+        : parseInt(1/speedFrequency * 10) / 10 + " s";
+    
+    // Refresh setInterval while playing
+    if (play) {
+        clearInterval(playIntervalID);
+        playIntervalID = setInterval(stateNext, parseInt(1000/speedFrequency));
+    }
+}
+
+// Event listeners
+
+// Drag or click on grid
+let mouseDown = false;
+let initialX;
+let initialY;
+let initialT;
+let currentX = 0;
+let currentY = 0;
+let currentT = 0;
+
+function moveMouse(e) {
+    e = e || window.event;
+    currentX = e.clientX;
+    currentY = e.clientY;
+    document.querySelector("main").style.transform = `translate(${currentX - initialX}px, ${currentY - initialY}px)`
+}
+
+function upMouse(e) {
+    e = e || window.event;
+    document.onpointermove = null; // Reset movement
+    document.onpointerup = null; // Reset movement
+    
+    // If click was long enough or far enough to be drag
+    currentT = new Date().getTime();
+    if (currentT - initialT > 200) {
+        // Drag - actually update posX and posY and get rid of transform
+        posX += (currentX - initialX)/zoom;
+        posY += (currentY - initialY)/zoom;
+        showState();
+    } else {
+        // Click
+        let gridX = Math.floor((e.clientX - screenWidth/2)/zoom - posX);
+        let gridY = Math.floor((e.clientY - screenHeight/2)/zoom - posY);
+        stateSquareClick(gridX, gridY);
+    }
+    document.querySelector("main").style.transform = "none";
+}
+
+document.querySelector("main").addEventListener("pointerdown", function() {
+    let e = window.event;
+    initialX = e.clientX;
+    initialY = e.clientY;
+    document.onpointermove = moveMouse;
+    document.onpointerup = upMouse;
+    initialT = new Date().getTime();
+});
+
+// Buttons
+document.getElementById("button-next").addEventListener("click", stateNext);
+document.getElementById("button-clear").addEventListener("click", stateClear);
+
+document.querySelector(".blob").addEventListener("click", function() {
+    generation = 0;
+    this.innerText = "0";
+});
+
+document.getElementById("button-play").addEventListener("click", function() {
+    if (play) {
+        clearInterval(playIntervalID);
+        play = false;
+        this.className = "";
+    } else {
+        playIntervalID = setInterval(stateNext, parseInt(1000/speedFrequency));
+        play = true;
+        this.className = "on";
+    }
+});
+
+document.getElementById("button-single").addEventListener("click", function() {
+    updateMode("C") // Cells
+});
+
+document.getElementById("button-multiple").addEventListener("click", function() {
+    updateMode("O"); // Objects
+});
+
+document.getElementById("button-info").addEventListener("click", function() {
+    updateMode("I"); // Objects
+});
+
+// Object mode sidebar buttons
+
+document.getElementById("sidebar-objects-delete").addEventListener("click", function() {
+    let i = 0;
+    for (let subgrid of state) {
+        if (subgrid.id == selectedObject) {
+            // Delete selected subgrid
+            state.splice(i, 1);
+        }
+        i++;
+    };
+
+    showState();
+});
+
+document.getElementById("sidebar-objects-left").addEventListener("click", function() {
+    let i = 0;
+    for (let subgrid of state) {
+        if (subgrid.id == selectedObject) {
+            // Delete selected subgrid
+            subgrid.tl[0]--;
+        }
+        i++;
+    };
+    showState();
+});
+document.getElementById("sidebar-objects-right").addEventListener("click", function() {
+    let i = 0;
+    for (let subgrid of state) {
+        if (subgrid.id == selectedObject) {
+            // Delete selected subgrid
+            subgrid.tl[0]++;
+        }
+        i++;
+    };
+    showState();
+});
+document.getElementById("sidebar-objects-up").addEventListener("click", function() {
+    let i = 0;
+    for (let subgrid of state) {
+        if (subgrid.id == selectedObject) {
+            // Delete selected subgrid
+            subgrid.tl[1]--;
+        }
+        i++;
+    };
+    showState();
+});
+document.getElementById("sidebar-objects-down").addEventListener("click", function() {
+    let i = 0;
+    for (let subgrid of state) {
+        if (subgrid.id == selectedObject) {
+            // Delete selected subgrid
+            subgrid.tl[1]++;
+        }
+        i++;
+    };
+    showState();
+});
+
+// Final updates
+
+// Update zoom
+document.getElementById("input-zoom").addEventListener("input", updateZoom);
+document.getElementById("input-zoom").value = 5;
+updateZoom();
+
+// Update speed
+document.getElementById("input-speed").addEventListener("input", updateSpeed);
+document.getElementById("input-speed").value = 29;
+updateSpeed();
+
+// Update mode
+updateMode("I");
+
+// Update grid
+showState();
+    </script>
+</body>
+</html>

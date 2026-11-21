@@ -6,10 +6,16 @@ html {
     font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
     min-height: 100%;
     background-color: white;
-    --theme: #4d6aca;
-    --theme-2: #923f24;
-    --grey: #a4a4a4;
+    --org-theme: #0057c9;
+    --org-theme-2: #923f24;
+    --org-theme-grey: #a4a4a4;
+    --theme: var(--org-theme);
+    --theme-2: var(--org-theme-2);
+    --grey: var(--org-theme-grey);
+    --theme-text: black;
+    
     --backgr-beige: #f5f2ea;
+    --backgr-grey: #e7e7e7;
 
     --boxpadding: 40px 40px;
     --headerwidth: 580px;
@@ -115,6 +121,16 @@ section.beige {
     background-color: var(--backgr-beige);
 }
 
+section.black {
+    background-color: black;
+    --theme-text: white;
+    --theme: #64a4f8;
+    --theme-2: #e98969;
+    --theme-text: white;
+    --grey: #cfcfcf;
+    --backgr-grey: #202020;
+}
+
 h2 {
     font-size: 24pt;
     margin: 0px 0 10px;
@@ -125,6 +141,7 @@ h2 {
 p {
     font-size: 15pt;
     margin: 20px 0 10px;
+    color: var(--theme-text);
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 
@@ -147,6 +164,10 @@ a.bigbox {
 
     text-decoration: none;
     color: black;
+    background-color: var(--backgr-beige);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-blend-mode: lighten;
 }
 
 a.button {
@@ -162,12 +183,26 @@ a.button {
     font-size: 10pt;
     color: var(--theme-2);
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    transition: 0.2s;
+    background-color: var(--backgr-beige);
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-blend-mode: lighten;
 }
 
 a.bigbox:hover,
 a.button:hover {
     border: 1px solid var(--theme);
+}
+
+section.beige a.bigbox,
+section.beige a.button {
+    background-color: var(--backgr-grey) !important;
+}
+
+section.black a.bigbox,
+section.black a.button {
+    background-color: var(--backgr-grey) !important;
+    background-blend-mode: darken;
 }
 
 h3.bigboxdetail {
@@ -180,7 +215,6 @@ p.bigboxdetail {
 }
 
 div.infographic-horizontal {
-    background-color: white;
     border: 1px solid var(--grey);
     border-radius: 10px;
     padding: 10px;
@@ -190,6 +224,7 @@ div.infographic-horizontal {
     height: fit-content;
     margin: 0 0 10px;
     gap: 10px;
+    background-color: var(--backgr-beige);
 }
 
 div.infographic-horizontal>* {
@@ -201,6 +236,10 @@ div.infographic-horizontal>* {
     justify-content: flex-start;
     height: fit-content;
     width: 100%;
+}
+
+section.beige div.infographic-horizontal {
+    background-color: white !important;
 }
 
 div.horizontal {
@@ -228,12 +267,4 @@ div.horizontal-half {
 div.horizontal-half>* {
     flex-basis: none;
     width: 100%;
-}
-
-footer {
-    font-size: 15pt;
-    margin: 20px 0 10px;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
-    text-align: center;
-    color: var(--grey);
 }

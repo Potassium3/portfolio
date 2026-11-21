@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30" xmlns:bx="https://boxy-svg.com">
+  <defs>
+    <bx:grid x="0" y="0" width="1" height="1" divisions="2"/>
+    <bx:export>
+      <bx:file format="svg" path="next.svg"/>
+    </bx:export>
+    <bx:grid x="0" y="0" width="1" height="1" divisions="1"/>
+    <bx:export>
+      <bx:file format="svg" path="next.svg"/>
+    </bx:export>
+  </defs>
+  <polygon style="stroke: rgb(0, 0, 0); stroke-width: 0px; fill: rgb(216, 23, 139);" points="4 6 5 4 14.5 13.5 24 4 26 5 16.5 14.5 26 24 25 26 15.5 16.5 6 26 4 25 13.5 15.5"/>
+</svg>

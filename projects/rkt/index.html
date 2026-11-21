@@ -1,0 +1,181 @@
+<!-- New changes -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rocket Simulator</title>
+  <link rel="stylesheet" href="style.css" type="text/css">
+</head>
+<body>
+  <header>
+    <h1>Rocket Simulator</h1>
+    <div id="view">
+      <div class="img-view"></div>
+      View
+      <input type="radio" name="menu" id="r-view">
+    </div>
+    <div id="body">
+      <div class="img-body"></div>
+      Body
+      <input type="radio" name="menu" id="r-body">
+    </div>
+    <div id="fins">
+      <div class="img-fins"></div>
+      Fins
+      <input type="radio" name="menu" id="r-fins">
+    </div>
+    <div id="thrust">
+      <div class="img-thrust"></div>
+      Thrust
+      <input type="radio" name="menu" id="r-thrust">
+    </div>
+    <div id="launch">
+      <div class="img-go"></div>
+      Launch
+      <input type="radio" name="menu" id="r-launch">
+    </div>
+  </header>
+  <main>
+    <section id="p-view">
+      <div class="panel">
+        <h2>3D View</h2>
+      </div>
+    </section>
+    <section id="p-body">
+      <div class="panel">
+        <h2>Materials</h2>
+        <p>Select a piece of rocket to change density and thickness.</p>
+      </div>
+      <div class="panel">
+        <h2>Shape</h2>
+        <p>Dimensions in mm.</p>
+        <div class="rocket rocket-long">
+          <!-- Javascript -->
+        </div>
+
+        <button id="button-body-shape-delete">-</button>
+        <div class="input input-number">
+          <p>Total mass (kg)</p>
+          <div>
+            <input id="input-body-shape-mass">
+          </div>
+        </div>
+        <button>Calculate mass automatically</button>
+        <p>The nose must be cone shaped, and widths must match across pieces.</p>
+      </div>
+      <div class="panel">
+        <h2>Stability</h2>
+      </div>
+    </section>
+    <section id="p-fins">
+      <div class="panel">
+        <h2>Material</h2>
+      </div>
+      <div class="panel">
+        <h2>Shape</h2>
+        <div class="input input-range">
+          <p>Width <strong id="output-fins-shape-width"></strong>mm</p>
+          <div>
+            <div id="input-fins-shape-width-slider"></div>
+            <input id="input-fins-shape-width" type="range" min="0" max="100">
+            <div></div>
+          </div>
+        </div>
+        <div class="input input-range">
+          <p>Fin Shape</p>
+          <div>
+            <div id="input-fins-shape-shape-slider"></div>
+            <input id="input-fins-shape-shape" type="range" min="0" max="100">
+            <div></div>
+          </div>
+        </div>
+        <div class="rocket rocket-long fins">
+          <!-- Javascript -->
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Angle</h2>
+        <div class="input input-range">
+          <p>Fins</p>
+          <div>
+            <div id="input-fins-angle-fins-slider"></div>
+            <input id="input-fins-angle-fins" type="range" min="0" max="6">
+            <div></div>
+          </div>
+        </div>
+        <div class="input input-range">
+          <p>Thickness <strong id="output-fins-angle-thickness"></strong>mm</p>
+          <div>
+            <div id="input-fins-angle-thickness-slider"></div>
+            <input id="input-fins-angle-thickness" type="range" min="0" max="100">
+            <div></div>
+          </div>
+        </div>
+        <div class="rocket rocket-cross">
+          <!-- Javascript -->
+        </div>
+      </div>
+    </section>
+    <section id="p-thrust">
+      <div class="panel">
+        <h2>Forces</h2>
+        <div class="input input-number">
+          <p>Initial force (N)</p>
+          <div>
+            <input id="input-thrust-forces-force">
+          </div>
+        </div>
+        <div class="input input-number">
+          <p>Duration of force (s)</p>
+          <div>
+            <input id="input-thrust-forces-duration">
+          </div>
+        </div>
+        <p>Initial velocity: <strong id="output-thrust-forces-start">?</strong>m/s</p>
+        <p>Not implemented yet. Launch force and engine thrust.</p>
+      </div>
+      <div class="panel">
+        <h2>Stages</h2>
+        <p>Not implemented yet.</p>
+        <button id="delete-cache">Delete Cache</button>
+      </div>
+    </section>
+    <section id="p-launch">
+      <div class="panel">
+        <h2>Graph</h2>
+        <p>Choose x axis.</p>
+        <p>Choose y axis.</p>
+        <p>Draw button.</p>
+        <button id="button-thrust-graph-traject">Trajectory</button>
+        <button id="button-thrust-graph-drag">DragForce-Time</button>
+        <button id="button-thrust-graph-vel">Velocity-Time</button>
+        <button id="button-thrust-graph-xtime">Xdisplacement-Time</button>
+        <button id="button-thrust-graph-ytime">Ydisplacement-Time</button>
+        <button id="button-thrust-graph-yvel">Yvel-Time</button>
+        <button id="button-thrust-graph-xvel">Xvel-Time</button>
+      </div>
+      <div class="panel">
+        <div class="graph" id="graph-rocket">
+          <div class="graph-body"></div>
+          <div class="x-label">X-axis</div>
+          <div class="y-label">Y-axis</div>
+          <svg></svg>
+        </div>
+        <p>Max height: <strong id="output-launch-graph-height">?</strong>m</p>
+        <p>Final displacement: <strong id="output-launch-graph-finaldisp">?</strong>m</p>
+        <p>Flight time: <strong id="output-launch-graph-flighttime">?</strong>s</p>
+      </div>
+    </section>
+  </main>
+  <div class="input input-range">
+    <p>Zoom</p>
+    <div>
+      <div id="input-body-shape-zoom-slider"></div>
+      <input id="input-body-shape-zoom" type="range" min="0" max="100">
+      <div></div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
