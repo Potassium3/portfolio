@@ -9,7 +9,7 @@ let rocket = {
       hollow: false,
       thickness: 0,
       density: 15,
-      mass: 0.2,
+      mass: 1,
     },
     {
       topWidth: 40,
@@ -63,8 +63,24 @@ setInterval(function() {
 
 // Interface and graphics
 
-function renderMaterials() {
-
+function renderMaterials(data, i) {
+  let elem = document.getElementById("material-editor");
+  let piece = data.shape[i];
+  document.querySelectorAll("#rocket1>.piece").forEach(function(element) {
+    if ((element.dataset.i) == (i)) {
+      element.style.backgroundColor = "#444444";
+    } else {
+      element.style.backgroundColor = "transparent";
+    }
+  });
+  elem.innerHTML = `
+  <div class="input input-number">
+    <p>Density</p>
+    <div>
+      <input id="input-body-materials-density">
+    </div>
+  </div>
+  <p>Mass: <strong id="output-body-materials-mass">${piece.mass}</strong>kg</p>`
 }
 
 function calculateCentreMass(data) {
@@ -82,7 +98,7 @@ function calculateCentreMass(data) {
     } else {
       pos = piece.height*(3*(piece.bottomWidth**2/4) + piece.bottomWidth*piece.topWidth/2 + (piece.topWidth**2/4)) / (4*((piece.bottomWidth**2/4) + piece.bottomWidth*piece.topWidth/4 + (piece.topWidth**2/4)))
     }
-    sum += cumulPos+(pos*piece.mass); // Weighted average
+    sum += (cumulPos+pos)*piece.mass; // Weighted average
     freq += piece.mass;
     cumulPos += piece.height;
   }
@@ -102,7 +118,7 @@ function renderRocketLong(data, zoom=1) {
         let pieceElem = document.createElement("div");
         pieceElem.className = "piece";
         pieceElem.style = `height: ${piece.height*zoom}mm; cursor: pointer;`;
-        
+        pieceElem.dataset.i = String(i);
         pieceElem.innerHTML = `
           <div class="top-line" style="width: ${piece.topWidth*zoom}mm"></div>
           <div class="bottom-line" style="width: ${piece.bottomWidth*zoom}mm"></div>
@@ -538,7 +554,29 @@ document.getElementById("input-body-shape-mass").addEventListener("input", funct
 document.getElementById("button-body-shape-delete").addEventListener("click", function() {
   rocket.shape.pop();
   renderRocket(rocket);
-})
+});
+
+document.getElementById("button-body-shape-add").addEventListener("click", function() {
+  rocket.shape.push({
+    topWidth: 60,
+    bottomWidth: 60,
+    height: 100,
+    hollow: true,
+    thickness: 2,
+    density: 15,
+    mass: 0.2,
+  });
+  renderRocket(rocket);
+});
+
+document.getElementById("button-body-shape-mass").addEventListener("click", function() {
+  let m = 0;
+  for (let piece of rocket.shape) {
+    m += piece.mass;
+  }
+  rocket.mass = m;
+  renderRocket(rocket);
+});
 
 // Render the rockets
 
