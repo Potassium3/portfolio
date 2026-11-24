@@ -63,10 +63,22 @@ setInterval(function() {
 
 // Interface and graphics
 
+function calculateVolume(height, topWidth, bottomWidth, thickness) {
+  // mm, mm, mm, mm
+  let topRadius = topWidth / 2 / 1000; // to m (and a radius)
+  let bottomRadius = bottomWidth / 2 / 1000; // to m (and a radius)
+  let innerTop = topRadius - thickness/1000; // to m
+  let innerBottom = bottomRadius - thickness/1000; // to m 
+  let outerInner = (topRadius**2)+(topRadius * bottomRadius)+(bottomRadius**2)-(innerTop**2)-(innerTop*innerBottom)-(innerBottom**2);
+  let volume = (Math.PI / 3) * height/1000 * outerInner; // height to m
+  return volume;
+}
+
 function renderMaterials(data, i) {
   let elem = document.getElementById("material-editor");
   let piece = data.shape[i];
   document.querySelectorAll("#rocket1>.piece").forEach(function(element) {
+    console.log("I: "+element.dataset.i);
     if ((element.dataset.i) == (i)) {
       element.style.backgroundColor = "#444444";
     } else {
@@ -74,13 +86,42 @@ function renderMaterials(data, i) {
     }
   });
   elem.innerHTML = `
+  <h2><strong>Piece ${i+1}</strong></h2>
   <div class="input input-number">
-    <p>Density</p>
+    <p>Density (kg m<sup>-3</sup>)</p>
     <div>
-      <input id="input-body-materials-density">
+      <input id="input-body-materials-density" value="${piece.density}">
     </div>
   </div>
-  <p>Mass: <strong id="output-body-materials-mass">${piece.mass}</strong>kg</p>`
+  <div class="input input-number">
+    <p>Thickness (mm)</p>
+    <div>
+      <input id="input-body-materials-thickness" value="${piece.thickness}">
+    </div>
+  </div>
+  <p>Volume (m<sup>3</sup>): <strong id="output-body-materials-volume">${Math.round(piece.volume*1000000000)/1000000000}</strong></p>
+  <p>Mass (kg): <strong id="output-body-materials-mass">${Math.round(piece.mass*1000000000)/1000000000}</strong></p>
+  <button id="button-body-materials-delete">Delete</button>`
+
+  document.getElementById("input-body-materials-density").addEventListener("input", function() {
+    piece.density = Number(this.value);
+    piece.volume = calculateVolume(piece.height, piece.topWidth, piece.bottomWidth, piece.thickness);
+    piece.mass = piece.volume * piece.density;
+    renderRocket(rocket);
+  });
+  document.getElementById("input-body-materials-thickness").addEventListener("input", function() {
+    piece.thickness = Number(this.value);
+    piece.volume = calculateVolume(piece.height, piece.topWidth, piece.bottomWidth, piece.thickness);
+    piece.mass = piece.volume * piece.density;
+    document.getElementById("output-body-materials-volume").innerText = Math.round(piece.volume*1000000000)/1000000000;
+    document.getElementById("output-body-materials-mass").innerText = Math.round(piece.mass*1000000000)/1000000000;
+    renderRocket(rocket);
+  });
+  document.getElementById("button-body-materials-delete").addEventListener("click", function() {
+    rocket.shape.splice(i, 1);
+    renderRocket(rocket);
+    renderMaterials(rocket, 1);
+  });
 }
 
 function calculateCentreMass(data) {
@@ -160,6 +201,7 @@ function renderRocketLong(data, zoom=1) {
         let pieceElem = document.createElement("div");
         pieceElem.className = "piece";
         pieceElem.style = `height: ${piece.height*zoom}mm; cursor: pointer;`;
+        pieceElem.dataset.i = String(i);
         pieceElem.innerHTML += `
           <div class="top-line" style="width: ${piece.topWidth*zoom}mm"></div>
           <div class="bottom-line" style="width: ${piece.bottomWidth*zoom}mm"></div>
@@ -250,6 +292,7 @@ function renderNumberInputs(data) {
   document.getElementById("input-body-shape-mass").value = String(data.mass);
   document.getElementById("input-thrust-forces-force").value = String(data.launch.force);
   document.getElementById("input-thrust-forces-duration").value = String(data.launch.forceduration);
+  document.getElementById("input-thrust-forces-angle").value = String(data.launch.angleFromHoriz);
 }
 
 function renderNumberOutputs(data) {
@@ -286,7 +329,7 @@ function scaleInterval(maxValue) {
   }
 }
 
-function plotGraph(xName="X-axis", yName="Y-axis", xList, yList) {
+function plotGraph(xName="X-axis", yName="Y-axis", xList, yList, stageList) {
   document.querySelector("#graph-rocket>.x-label").innerHTML = xName;
   document.querySelector("#graph-rocket>.y-label").innerHTML = yName;
   let xMax = 0;
@@ -335,6 +378,9 @@ function plotGraph(xName="X-axis", yName="Y-axis", xList, yList) {
     point.className = "point";
     point.style.top = y+"px";
     point.style.left = x+"px";
+    if (stageList[i] == 1) {
+      point.style.backgroundColor = "var(--yellow)";
+    }
 
     graphBody.appendChild(point);
 
@@ -399,10 +445,10 @@ function simulate(data) {
   // Simulate the time steps
   let x = 0;
   let y = 0;
-  let initialVelocity = data.launch.force * data.launch.forceduration / data.mass;
-  let xVel = initialVelocity*Math.SQRT2/2; // m s^-1
-  let yVel = initialVelocity*Math.SQRT2/2;
-  let mass = Math.max(data.mass, 0.01); // kg
+  let initialAngle = data.launch.angleFromHoriz/360*Math.PI*2; // Deg to rad
+  let xVel = 0.0001*Math.cos(initialAngle); // m s^-1
+  let yVel = 0.0001*Math.sin(initialAngle);
+  let mass = Math.max(data.mass, 0.001); // kg
 
   // Initial results
   let results = {
@@ -413,6 +459,8 @@ function simulate(data) {
     dragF: [null],
     time: [0],
     velocity: [0],
+    angle: [initialAngle],
+    stage: [1], // Stage 1: thrust, 2: no thrust, 3: parachute
     maxheight: 0,
     finaldisplace: 0,
     flighttime: 0,
@@ -432,7 +480,10 @@ function simulate(data) {
     let resultantForceX = 0;
     let resultantForceY = 0;
     // Thrust
-    // Not applicable
+    if (t <= data.launch.forceduration) {
+      resultantForceX += Math.cos(angle)*data.launch.force;
+      resultantForceY += Math.sin(angle)*data.launch.force;
+    }
     // Drag force
     resultantForceX -= Math.cos(angle)*dragForce;
     resultantForceY -= Math.sin(angle)*dragForce;
@@ -456,11 +507,13 @@ function simulate(data) {
     velocity = Math.hypot(xVel, yVel);
     results.x.push(x);
     results.y.push(y);
-    results.xvel.push(xVel);
-    results.yvel.push(yVel);
+    results.xvel.push(Math.abs(xVel));
+    results.yvel.push(Math.abs(yVel));
     results.dragF.push(dragForce);
     results.velocity.push(velocity);
     results.time.push(t);
+    results.angle.push(Math.abs(angle));
+    results.stage.push(t <= data.launch.forceduration ? 1 : 2)
   }
   
   document.getElementById("output-launch-graph-height").innerText = Math.round(results.maxheight*10)/10;
@@ -480,35 +533,36 @@ document.getElementById("input-body-shape-zoom").addEventListener("input", funct
 
 document.getElementById("button-thrust-graph-traject").addEventListener("click", function() {
   let results = simulate(rocket);
-  plotGraph("Horizontal displacement (m)", "Vertical displacement (m)", results.x, results.y);
+  plotGraph("Horizontal displacement (m)", "Vertical displacement (m)", results.x, results.y, results.stage);
 });
 document.getElementById("button-thrust-graph-drag").addEventListener("click", function() {
   let results = simulate(rocket);
-  plotGraph("Time (s)", "Drag force (N)", results.time, results.dragF);
+  plotGraph("Time (s)", "Drag force (N)", results.time, results.dragF, results.stage);
 });
 document.getElementById("button-thrust-graph-vel").addEventListener("click", function() {
   let results = simulate(rocket);
-  plotGraph("Time (s)", "Velocity Magnitude (m s<sup>-1</sup>)", results.time, results.velocity);
+  plotGraph("Time (s)", "Velocity Magnitude (m s<sup>-1</sup>)", results.time, results.velocity, results.stage);
 });
 document.getElementById("button-thrust-graph-ytime").addEventListener("click", function() {
   let results = simulate(rocket);
-  plotGraph("Time (s)", "Vertical displacement (m)", results.time, results.y);
+  plotGraph("Time (s)", "Vertical displacement (m)", results.time, results.y, results.stage);
 });
 document.getElementById("button-thrust-graph-xtime").addEventListener("click", function() {
   let results = simulate(rocket);
-  plotGraph("Time (s)", "Horizontal displacement (m)", results.time, results.x);
+  plotGraph("Time (s)", "Horizontal displacement (m)", results.time, results.x, results.stage);
 });
 document.getElementById("button-thrust-graph-yvel").addEventListener("click", function() {
   let results = simulate(rocket);
-  plotGraph("Time (s)", "Vertical Velocity (m s<sup>-1</sup>)", results.time, results.yvel);
+  plotGraph("Time (s)", "Vertical Velocity (m s<sup>-1</sup>)", results.time, results.yvel, results.stage);
 });
 document.getElementById("button-thrust-graph-xvel").addEventListener("click", function() {
   let results = simulate(rocket);
-  plotGraph("Time (s)", "Horizontal Velocity (m s<sup>-1</sup>)", results.time, results.xvel);
+  plotGraph("Time (s)", "Horizontal Velocity (m s<sup>-1</sup>)", results.time, results.xvel, results.stage);
 });
 
 document.getElementById("delete-cache").addEventListener("click", function() {
   window.localStorage.removeItem("rocket-data");
+  window.location.reload();
 });
 
 let elem = document.getElementById("input-body-shape-zoom");
@@ -546,14 +600,14 @@ document.getElementById("input-thrust-forces-duration").addEventListener("input"
   renderNumberOutputs(rocket);
 });
 
-document.getElementById("input-body-shape-mass").addEventListener("input", function() {
-  rocket.mass = Number(this.value);
+document.getElementById("input-thrust-forces-angle").addEventListener("input", function() {
+  rocket.launch.angleFromHoriz = Number(this.value);
   renderNumberOutputs(rocket);
 });
 
-document.getElementById("button-body-shape-delete").addEventListener("click", function() {
-  rocket.shape.pop();
-  renderRocket(rocket);
+document.getElementById("input-body-shape-mass").addEventListener("input", function() {
+  rocket.mass = Number(this.value);
+  renderNumberOutputs(rocket);
 });
 
 document.getElementById("button-body-shape-add").addEventListener("click", function() {
